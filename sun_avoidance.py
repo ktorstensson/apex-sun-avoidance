@@ -62,10 +62,9 @@ def main(args=None):
     df.loc[df.azimuth > 180, 'azimuth'] = df.azimuth - 360
 
     df['clt'] = df.utc - pd.to_timedelta('3H')
-
-    df['zd'] = 90 - df.elevation
-    df['max_El'] = 90 - (30 - df.zd) - 0.0  # Subtracting 0 deg tolerance
-
+    
+    df['max_El'] = 150 - df.elevation - 0.0  # Subtracting 0 deg tolerance
+    
     df.set_index('clt', inplace=True)
     df.drop(df[df.max_El>90].index, inplace=True)
      
