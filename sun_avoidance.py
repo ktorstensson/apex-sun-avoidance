@@ -67,26 +67,29 @@ def main(args=None):
     
     df.set_index('clt', inplace=True)
     df.drop(df[df.max_El>90].index, inplace=True)
-     
-    fig, ax = plt.subplots(1)
-    df.max_El.plot(ax=ax, color='C3')
-    ax.fill_between(df.index, df.max_El, 90, color='C3', alpha=0.3)
-    plt.grid(which='both')
-    plt.ylabel('Max telescope elevation [deg]')
-    plt.xlabel('CLT')
-    sa_start = df.first_valid_index().strftime("%H:%M")
-    sa_end =  df.last_valid_index().strftime("%H:%M")
-    ax.text(0.01, 0.05, 'SA starts ' + sa_start,
-            transform=ax.transAxes, fontsize='12')
-    ax.text(0.98, 0.05, 'SA ends ' + sa_end,
-            transform=ax.transAxes, ha='right', fontsize='12')
-    ax.text(0.5, 0.15, 'Max El: {:.1f}$^\circ$'.format(df.max_El.min()),
-            transform=ax.transAxes, ha='center', fontsize='12')
-    plt.title('APEX ' + date)
-    plt.tight_layout()
-    plot_file = 'plots/maxEl_' + date + '.png'
-    plt.savefig(plot_file, bbox_inches='tight', dpi=120)
-    print(plot_file)
+    
+    if df.empty:
+        print('No elevation limit on ' + date)
+    else:
+        fig, ax = plt.subplots(1)
+        df.max_El.plot(ax=ax, color='C3')
+        ax.fill_between(df.index, df.max_El, 90, color='C3', alpha=0.3)
+        plt.grid(which='both')
+        plt.ylabel('Max telescope elevation [deg]')
+        plt.xlabel('CLT')
+        sa_start = df.first_valid_index().strftime("%H:%M")
+        sa_end =  df.last_valid_index().strftime("%H:%M")
+        ax.text(0.01, 0.05, 'SA starts ' + sa_start,
+                transform=ax.transAxes, fontsize='12')
+        ax.text(0.98, 0.05, 'SA ends ' + sa_end,
+                transform=ax.transAxes, ha='right', fontsize='12')
+        ax.text(0.5, 0.15, 'Max El: {:.1f}$^\circ$'.format(df.max_El.min()),
+                transform=ax.transAxes, ha='center', fontsize='12')
+        plt.title('APEX ' + date)
+        plt.tight_layout()
+        plot_file = 'plots/maxEl_' + date + '.png'
+        plt.savefig(plot_file, bbox_inches='tight', dpi=120)
+        print(plot_file)
     
     return
 
