@@ -9,18 +9,31 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def sun_pos(date, apexobs):
-    apexobs.date = date
-    s = ep.Sun(apexobs)
+def sun_pos(date, observer):
+    '''Calcalute sun position for given date and observer
+    Parameters
+    ----------
+    date : string
+        UT date, e.g. (YYYY-MM-DD)
+    observer : ephem.Observer
+        observer location
+
+    Returns
+    -------
+    el, az : float
+    '''
+    observer.date = date
+    s = ep.Sun(observer)
     el = s.alt * 180 / np.pi
     az = s.az.norm * 180 / np.pi
     return el, az
 
 
 def parse_inputs():
-    '''Parse inputs, absolute or optinal'''
+    '''Parse optional date input'''
     parser = argparse.ArgumentParser()
-    parser.add_argument('date', nargs='?', type=str, default=pd.datetime.utcnow().date().strftime('%Y-%m-%d'),
+    parser.add_argument('date', nargs='?', type=str,
+                        default=pd.datetime.utcnow().date().strftime('%Y-%m-%d'),
                         help='Date (2017-10-10)')
     args = parser.parse_args()
     return args.date
@@ -39,20 +52,13 @@ def main(args=None):
     apexobs.temp = 0
     apexobs.compute_pressure()
     apexobs.name = 'APEX'
-    apexobs.date = ep.now()
-    # m = ep.Mars(apexobs)
-    # s = ep.Sun(apexobs)
 
-    # print("Sun", ep.now())
-    # print("Ra/Dec:", s.ra, s.dec)
-    # print("Az/El:", s.az.znorm, s.alt)
-
-    # ut_date = '2017-10-09'
     rng = pd.date_range(date, periods=60*24, freq='Min', unit='s', name='utc')
     df = pd.DataFrame(index=rng, columns=['elevation'])
     df.reset_index(inplace=True)
 
-    df['elevation'], df['azimuth'] = zip(*df.utc.apply(sun_pos, args=(apexobs,)))
+    df['elevation'], df['azimuth'] = zip(*df.utc.apply(sun_pos,
+                                                       args=(apexobs,)))
     df.loc[df.azimuth > 180, 'azimuth'] = df.azimuth - 360
 
     df['clt'] = df.utc - pd.to_timedelta('3H')
@@ -69,14 +75,19 @@ def main(args=None):
     plt.grid(which='both')
     plt.ylabel('Max telescope elevation [deg]')
     plt.xlabel('CLT')
-    ax.text(0.01, 0.05, 'SA starts ' + df.first_valid_index().strftime("%H:%M"), transform=ax.transAxes, fontsize='12')
-    ax.text(0.98, 0.05, 'SA ends ' + df.last_valid_index().strftime("%H:%M"), transform=ax.transAxes, ha='right', fontsize='12')
-    ax.text(0.5, 0.15, 'Max El: {:.1f}$^\circ$'.format(df.max_El.min()), transform=ax.transAxes, ha='center', fontsize='12')
-    plt.title('APEX ' + df.first_valid_index().strftime("%Y-%m-%d"))
+    sa_start = df.first_valid_index().strftime("%H:%M")
+    sa_end =  df.last_valid_index().strftime("%H:%M")
+    ax.text(0.01, 0.05, 'SA starts ' + sa_start,
+            transform=ax.transAxes, fontsize='12')
+    ax.text(0.98, 0.05, 'SA ends ' + sa_end,
+            transform=ax.transAxes, ha='right', fontsize='12')
+    ax.text(0.5, 0.15, 'Max El: {:.1f}$^\circ$'.format(df.max_El.min()),
+            transform=ax.transAxes, ha='center', fontsize='12')
+    plt.title('APEX ' + date)
     plt.tight_layout()
-    plt.savefig('plots/maxEl_' + df.first_valid_index().strftime("%Y-%m-%d") + '.png', bbox_inches='tight', dpi=120)
-    plt.savefig('plots/maxEl_' + df.first_valid_index().strftime("%Y-%m-%d") + '.pdf', bbox_inches='tight', dpi=120)
-    print('Created plots/maxEl_' + df.first_valid_index().strftime("%Y-%m-%d"))
+    plot_file = 'plots/maxEl_' + date + '.png'
+    plt.savefig(plot_file, bbox_inches='tight', dpi=120)
+    print(plot_file)
     
     return
 
