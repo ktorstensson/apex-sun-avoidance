@@ -1,4 +1,4 @@
-''' sun_avoidance.py
+''' show_sun_avoidance.py
 Script to calculate engineering sun avoidance for given ut date.
 '''
 
@@ -118,7 +118,7 @@ def main(args=None):
         print('\nUTC sun avoidance ' + ' - '.join([ut_start, ut_end]))
         print('CLT sun avoidance ' + ' - '.join([sa_start, sa_end]))
         print('Max elevation {:d} degrees'.format(max_el))
-        plt.close('all')  # show(block=True)
+        plt.close('all')
         os.system('display ' + plot_file + '&')
 
     return df
